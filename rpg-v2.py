@@ -198,6 +198,8 @@ class Supertonic:
     def use(self, user):
         user.health += self.health_boost
         user.inventory.remove(self)
+        print(
+            f"You feel a nice buzz. Your health increased by {self.health_boost}.")
 
 
 class Armor:
@@ -314,9 +316,9 @@ def main():
     enemy_list = [goblin, wizard, zombie]
 
     print(f"""
-    Welcome to Nep's RPG Game. 
+    Welcome to Nep's RPG Game.
     You get to play as a Hero, Medic, Shadow, Knight, or Comedian.
-    You'll fight monsters and get money on this quest. 
+    You'll fight monsters and get money on this quest.
     Here's some information on each character.
 
     A Hero has {hero.health} health and {hero.power} power.
@@ -349,6 +351,7 @@ def main():
     random_monster = random.choice(enemy_list)
     print(f"A {random_monster.__class__.__name__} appears.")
 
+    # The main while loop
     while random_monster.alive() and user_character.alive():
 
         user_character.print_status()
@@ -364,12 +367,14 @@ def main():
         user_input = input()
 
         if user_input == "1":
+            # initialize item objects
             supertonic = Supertonic()
             armor = Armor()
             evade = Evade()
             escape = Escape()
             swap = Swap()
 
+            # storing the item objects in a dictionary
             store_shelves = {
                 "supertonic": supertonic,
                 "armor": armor,
@@ -413,6 +418,28 @@ def main():
                     print("===========   Exiting the Store   ===============\n")
 
         if user_input == "2":
+
+            if len(user_character.inventory) > 0:
+                use_item = input(
+                    "Would you like to use an item in your inventory? yes or no? >> ")
+                if use_item == 'no':
+                    pass
+                elif 'yes':
+                    try:
+                        print("Here are all the items in your inventory.")
+                        for i in range(len(user_character.inventory)):
+                            print(
+                                user_character.inventory[i].__class__.__name__ + " is in Location Number: " + str(i))
+
+                        user_item_selection = int(
+                            input("Input the location number of the item you want to use >> "))
+                        selected_item = user_character.inventory[user_item_selection]
+                        selected_item.use(user_character)
+                        print(user_character.inventory)
+                    except:
+                        print("That item is not in your inventory.")
+                else:
+                    print("Invalid input.")
 
             user_character.attack(random_monster)
 
