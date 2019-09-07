@@ -5,6 +5,7 @@ Exercise is to expand on the previous days RPG game. More characters, adding Ite
 
 """
 import random
+import time
 
 # Parent class of both User Characters and Enemies
 
@@ -17,32 +18,22 @@ class Character(object):
         self.power = power
 
     def attack(self, enemy):
-        medic_chance = random.random()
-        # if the class you are attacking is a Medic
-        if enemy.__class__.__name__ == 'Medic':
-            if medic_chance <= 0.20:
-                enemy.health -= self.power
-                enemy.health += 2
-                print("Your Medic special ability kicked in. You gained 2 health.")
-        else:
-            enemy.health -= self.power
+        enemy.health -= self.power
 
     def alive(self):
 
         if self.health > 0:
             return True
 
-    # Todo will need to expand this for other classes that are created
-
     def print_status(self):
-
-        if self.__class__.__name__ == 'Hero':
+        user_characters = ['Hero', 'Medic', 'Shadow', 'Knight', 'Comedian']
+        if self.__class__.__name__ in user_characters:
             print(f"You have {self.health} health and {self.power} power.")
-        elif self.__class__.__name__ == 'Zombie':
+        else:
             print(
-                f"The Zombie has {self.health} health and {self.power} power.")
+                f"The {self.__class__.__name__} has {self.health} health and {self.power} power.")
 
-# ! Below are the classes the user can choose to play as: Hero, Medic, Shadow
+# User Classes: Hero, Medic, Shadow, Knight, Comedian
 
 
 class Hero(Character):
@@ -62,79 +53,217 @@ class Hero(Character):
 
 
 class Medic(Character):
+
+    def medic_power(self):
+        medic_chance = random.random()
+        if medic_chance <= 0.20:
+            self.health += 2
+            print("Your medic special ability kicked in. You gained 2 health.")
+
+
+class Shadow(Character):
     pass
 
-# ! Below are the classes the user fights: Goblin, Zombie
+
+class Knight(Character):
+
+    def attack(self, enemy):
+        knight_chance = random.random()
+        if knight_chance <= 0.60:
+            print("Swing and a miss. Better luck next time.")
+        else:
+            print(
+                f"You got him! {enemy.__class__.__name__} loses {self.power} health.")
+            enemy.health -= self.power
+
+
+class Comedian(Character):
+
+    def attack(self, enemy):
+        laugh_chance = random.random()
+        jokes = [
+            "I made a pencil with two erasers. It was pointless.",
+            "How do you make a Kleenex dance? Put a little boogie in it!",
+            "What do you get from a pampered cow? Spoiled Milk.",
+            "Why did the scarecrow win an award? Because he was outstanding in his field.",
+            "How do you get a squirrel to like you? Act like a nut.",
+            "My wife is really mad at the fact that I have no sense of direction. So I packed up my stuff and right!",
+            "Did you hear the rumor about butter? Well, I'm not going to spread it!",
+            "Why can't a nose be 12 inches long? Because then it would be a foot.",
+            "Did you hear about the circus fire? It was in tents.",
+            "What’s an astronaut’s favorite part of a computer? The space bar.",
+            "Spring is here! I got so excited I wet my plants.",
+            "Don't trust atoms. They make up everything!"
+        ]
+        print(
+            f"You come up with a joke to tell the {enemy.__class__.__name__}.")
+
+        print(random.choice(jokes))
+
+        print("Was it funny?")
+
+        time.sleep(5)
+
+        if laugh_chance <= 0.50:
+            print(
+                f"It worked! The {enemy.__class__.__name__} laughs really hard and loses {self.power} health!")
+            enemy.health -= self.power
+        else:
+            print(f"The {enemy.__class__.__name__} groans.")
+
+
+# Enemy Classes: Goblin, Wizard, Zombie
+
+class Goblin(Character):
+
+    def __init__(self, health, power, bounty):
+        self.health = health
+        self.power = power
+        self.bounty = bounty
+
+
+class Wizard(Character):
+
+    def __init__(self, health, power, bounty):
+        self.health = health
+        self.power = power
+        self.bounty = bounty
 
 
 class Zombie(Character):
+
+    def __init__(self, health, power, bounty):
+        self.health = health
+        self.power = power
+        self.bounty = bounty
+
     def never_die(self, enemy):
         if self.health <= 6:
             self.health = 6
+            print("The Zombie immediately regenerates health.")
 
 
 # Todo
 # Character Stats
 hero_health = 10
-hero_power = 5
+hero_power = 4
 
-medic_health = 10
+medic_health = 8
 medic_power = 3
 
-# TODO Create all the character objects
+shadow_health = 1
+shadow_power = 2
+
+knight_health = 15
+knight_power = 5
+
+comedian_health = 10
+comedian_power = 2
+
 # Character Objects
-our_hero = Hero(hero_health, hero_power)
+hero = Hero(hero_health, hero_power)
 medic = Medic(medic_health, medic_power)
+shadow = Shadow(shadow_health, shadow_power)
+knight = Knight(knight_health, knight_power)
+comedian = Comedian(comedian_health, comedian_power)
 
 # Enemy Stats
+goblin_health = 6
+goblin_power = 2
+goblin_bounty = 5
+
+wizard_health = 8
+wizard_power = 4
+wizard_bounty = 6
+
 zombie_health = 6
 zombie_power = 3
+zombie_bounty = 100
 
-# TODO Create all enemy objects
+
 # Enemy Objects
-zombie = Zombie(zombie_health, zombie_power)
+goblin = Goblin(goblin_health, goblin_power, goblin_bounty)
+zombie = Zombie(zombie_health, zombie_power, zombie_bounty)
+wizard = Wizard(wizard_health, wizard_power, wizard_bounty)
 
 # Dictionary of Initialized Characters
 character_dict = {
-    1: our_hero,
-    2: medic
+    1: hero,
+    2: medic,
+    3: shadow,
+    4: knight,
+    5: comedian
 }
 
-# TODO We can randomly select an enemy for our hero to face!
-# TODO Store all of the Enemy Objects in an empty array.
-enemy_list = []
-enemy_list.append(zombie)
+# List of enemies
+enemy_list = [goblin, wizard, zombie]
 
+
+# MAIN GAMEPLAY
 
 def main():
-    # ! Make sure this text keeps up to date with how many User Character options there are
+
     print(f"""
-    Welcome to Nep's RPG Game. Please choose to play as either a Hero or Medic.
-    A Hero has {our_hero.health} health and {our_hero.power} power.
-    A Medic has {medic.health} health and {medic.power} power. 
-    Medic's can some times regenerate 2 health when they're attacked.
+    Welcome to Nep's RPG Game. 
+    You get to play as a Hero, Medic, Shadow, Knight, or Comedian.
+    You'll fight monsters and get money on this quest. 
+    Here's some information on each character.
+
+    A Hero has {hero.health} health and {hero.power} power.
+    \t The hero can sometimes deal double damage points.\n
+    A Medic has {medic.health} health and {medic.power} power.
+    \t Medics can sometimes regenerate 2 health when they're attacked.\n
+    A Shadow has {shadow.health} health and {shadow.power} power.
+    \t Shadow's only take damage 10% of the time.\n
+    A Knight has {knight.health} health and {knight.power} power.
+    \t Knights are strong but sometimes they miss.\n
+    A Comedian has {comedian.health} health and {comedian.power} power.
+    \t Comedians don't fight. They tell jokes.\n
     """)
 
-    character_choice = int(input("Type 1 for Hero. Type 2 for Medic >> "))
+    # If the user types in something thats not 1 - 5, they're stuck in a loop until they do.
+    while True:
+        character_choice = int(
+            input("Type 1 for Hero. 2 for Medic. 3 for Shadow. 4 for Knight. 5 for Comedian. >> "))
 
-    user_character = character_dict[character_choice]
+        try:
+            user_character = character_dict[character_choice]
+            print(f"You chose {user_character.__class__.__name__}.")
+            break
+        except:
+            print("Please just type a single number between 1 - 5.")
+
     print()
-    while zombie.alive() and user_character.alive():
+
+    # Choose a monster at random
+    random_monster = random.choice(enemy_list)
+    print(f"A {random_monster.__class__.__name__} appears.")
+
+    while user_character.alive():
+
         user_character.print_status()
-        zombie.print_status()
+        random_monster.print_status()
 
         print()
         print("What do you want to do?")
-        print("1. fight zombie")
+        print(f"1. fight {random_monster.__class__.__name__}")
         print("2. do nothing")
         print("3. flee")
         print("> ",)
         user_input = input()
 
         if user_input == "1":
-            our_hero.attack(zombie)
-            zombie.never_die(our_hero)
-            print(f"The Zombie immediately regenerates health.")
+
+            user_character.attack(random_monster)
+
+            if random_monster.__class__.__name__ == "Zombie":
+                zombie.never_die(user_character)
+            else:
+                if random_monster.alive():
+                    pass
+                else:
+                    print("You defeated the enemy.")
+                    break
 
         elif user_input == "2":
             pass
@@ -146,11 +275,32 @@ def main():
         else:
             print("Invalid input %r" % user_input)
 
-        if zombie.alive():
+        # Monster attack sequence
+        if random_monster.alive():
 
-            zombie.attack(our_hero)
-            print("The Zombie does %d damage to you." % zombie.power)
-            if not our_hero.alive():
+            # Shadow special ability
+            shadow_chance = random.random()
+
+            if user_character.__class__.__name__ == "Shadow":
+
+                if shadow_chance <= 0.10:
+                    random_monster.attack(user_character)
+                    print(
+                        f"The enemy does {random_monster.power} damage to you.")
+
+                else:
+                    print(
+                        "The Monster tried attacking you but missed and attacked your shadow.")
+
+            else:
+                print(f"The {random_monster.__class__.__name__} attacks you.")
+                random_monster.attack(user_character)
+
+            # Medic special ability
+            if user_character.__class__.__name__ == "Medic":
+                medic.medic_power()
+
+            if not user_character.alive():
                 print("You are dead.")
 
 
