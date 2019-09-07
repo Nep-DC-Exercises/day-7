@@ -17,7 +17,9 @@ class Character(object):
         self.health = health
         self.power = power
         self.evade_points = 0
-        self.coins = 0
+        # ! I'm going to set self.coins to 20 in order to test the store purchase mechanism.
+        # Todo this is only temporary. Please set to 0 when testing complete.
+        self.coins = 23
         self.inventory = []
         self.armor_points = 0
 
@@ -53,10 +55,14 @@ class Character(object):
             return True
 
     def print_status(self):
+        i = 0
         user_characters = ['Hero', 'Medic', 'Shadow', 'Knight', 'Comedian']
         if self.__class__.__name__ in user_characters:
             print(f"You have {self.health} health and {self.power} power.")
-            print(f"Here's your inventory: {self.inventory}.")
+            for i in range(len(self.inventory)):
+                print(
+                    f"You have: {self.inventory[i].__class__.__name__} in your inventory.")
+
             print(f"You have {self.coins} coins.")
         else:
             print(
@@ -67,8 +73,9 @@ class Character(object):
         if self.coins > item.cost:
             self.inventory.append(item)
             self.coins -= item.cost
+            return True
         else:
-            print("You do not have enough coins to purchase that item.")
+            return False
 
 # User Classes: Hero, Medic, Shadow, Knight, Comedian
 
@@ -363,18 +370,47 @@ def main():
             escape = Escape()
             swap = Swap()
 
-            store_shelves = [supertonic, armor, evade, escape, swap]
-            print("Welcome to the Store")
+            store_shelves = {
+                "supertonic": supertonic,
+                "armor": armor,
+                "evade": evade,
+                "escape": escape,
+                "swap": swap
+            }
+            print("===========    Welcome to the Store   ===========")
             print("The following are items in stock.")
+            # time.sleep(2)
+            # Display the items available for purchase and how much they cost
             for i in store_shelves:
-                print(i.__class__.__name__ +
-                      " which costs " + str(i.cost) + " coins.")
+                print(i + " which costs " +
+                      str(store_shelves[i].cost) + " coins.")
+            # time.sleep(2)
+            # kick the user out of the store if they don't have cash money
             if user_character.coins == 0:
                 print("You have no money. Go out there and fight.")
+                print("===========   Exiting the Store   ===============\n")
                 user_input = "2"
             else:
-                print("Code goes here to enable user to purchase items")
-                user_input = "2"
+                print("Would you like to purchase anything?")
+                print("You can only buy one item at a time.")
+
+                try:
+                    item_purchase = input("Input the items name. >> ")
+                    item_retrieval = store_shelves[item_purchase]
+                    purchase_completion = user_character.buy_item(
+                        item_retrieval)
+                    if purchase_completion:
+                        print("Purchase complete.")
+                        print(f"You now have {user_character.coins} coins.")
+                        print("===========   Exiting the Store   ===============\n")
+                    else:
+                        print("Sorry. It looks like you don't have enough coins.")
+                        print("===========   Exiting the Store   ===============\n")
+                    user_input = "2"
+                except:
+                    print("We don't have that in the store.")
+                    print("You've overstayed your welcome. Get out.")
+                    print("===========   Exiting the Store   ===============\n")
 
         if user_input == "2":
 
@@ -397,7 +433,7 @@ def main():
                 wizard = Wizard(wizard_health, wizard_power, wizard_bounty)
                 enemy_list = [goblin, zombie, wizard]
                 random_monster = random.choice(enemy_list)
-                time.sleep(5)
+                time.sleep(4)
                 print(
                     f"But wait. A wild {random_monster.__class__.__name__} appears.")
 
