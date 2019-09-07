@@ -16,9 +16,36 @@ class Character(object):
 
         self.health = health
         self.power = power
+        self.evade_points = 0
+        self.coins = 0
+        self.inventory = []
+        self.armor_points = 0
 
     def attack(self, enemy):
-        enemy.health -= self.power
+
+        # The max points a character can have is 6
+        evade_lookup = {
+            2: 0.10,
+            4: 0.20,
+            6: 0.30
+        }
+        evade_chance = random.random()
+
+        # Check to see if we can avoid the attack entirely because of evade points present
+        if enemy.evade_points > 0:
+
+            evasion_chance = evade_lookup[enemy.evade_points]
+
+            if evasion_chance <= evade_chance:
+                print("The enemy missed thanks to your evade points.")
+
+        # If there's no evade points, check to see if there's any armor
+        elif enemy.armor_points > 0:
+            enemy.health -= self.power - enemy.armor_points
+
+        # If there's no armor or evade points, it's just a normal attack
+        else:
+            enemy.health -= self.power
 
     def alive(self):
 
@@ -29,9 +56,19 @@ class Character(object):
         user_characters = ['Hero', 'Medic', 'Shadow', 'Knight', 'Comedian']
         if self.__class__.__name__ in user_characters:
             print(f"You have {self.health} health and {self.power} power.")
+            print(f"Here's your inventory: {self.inventory}.")
+            print(f"You have {self.coins} coins.")
         else:
             print(
                 f"The {self.__class__.__name__} has {self.health} health and {self.power} power.")
+
+    def buy_item(self, item):
+
+        if self.coins > item.cost:
+            self.inventory.append(item)
+            self.coins -= item.cost
+        else:
+            print("You do not have enough coins to purchase that item.")
 
 # User Classes: Hero, Medic, Shadow, Knight, Comedian
 
@@ -142,8 +179,75 @@ class Zombie(Character):
             self.health = 6
             print("The Zombie immediately regenerates health.")
 
+# Item Classes: Supertonic, Armor, Evade, Escape, Swap
 
-# Todo
+
+class Supertonic:
+
+    def __init__(self):
+        self.cost = 5
+        self.health_boost = 10
+
+    def use(self, user):
+        user.health += self.health_boost
+        user.inventory.remove(self)
+
+
+class Armor:
+
+    def __init__(self):
+        self.cost = 8
+        self.points = 2
+
+    def use(self, user):
+        user.armor_points += self.points
+        user.inventory.remove(self)
+
+
+class Evade:
+
+    def __init__(self):
+        self.cost = 9
+        self.points = 2
+
+    def use(self, user):
+
+        if user.evade_points >= 6:
+            print("You cannot have more than 6 evade points. Don't buy any more.")
+            user.evade_points = 6
+
+        else:
+            user.evade_points += self.points
+
+        user.inventory.remove(self)
+
+
+class Escape:
+
+    def __init__(self):
+        self.cost = 10
+
+    def use(self, enemy):
+
+        if enemy.__class__.__name__ != "Zombie":
+            enemy.health = 0
+        else:
+            print("You can't escape a zombie. Sorry.")
+
+
+class Swap:
+
+    def __init__(self):
+        self.cost = 8
+
+    def use(self, user, enemy):
+        # using temporary variables to help with the switcharoo
+        a = user.power
+        b = enemy.power
+        user.power = b
+        enemy.power = a
+
+
 # Character Stats
 hero_health = 10
 hero_power = 4
@@ -181,11 +285,6 @@ zombie_power = 3
 zombie_bounty = 100
 
 
-# Enemy Objects
-goblin = Goblin(goblin_health, goblin_power, goblin_bounty)
-zombie = Zombie(zombie_health, zombie_power, zombie_bounty)
-wizard = Wizard(wizard_health, wizard_power, wizard_bounty)
-
 # Dictionary of Initialized Characters
 character_dict = {
     1: hero,
@@ -195,13 +294,17 @@ character_dict = {
     5: comedian
 }
 
-# List of enemies
-enemy_list = [goblin, wizard, zombie]
-
 
 # MAIN GAMEPLAY
 
 def main():
+    # Enemy Objects
+    goblin = Goblin(goblin_health, goblin_power, goblin_bounty)
+    zombie = Zombie(zombie_health, zombie_power, zombie_bounty)
+    wizard = Wizard(wizard_health, wizard_power, wizard_bounty)
+
+    # List of enemies
+    enemy_list = [goblin, wizard, zombie]
 
     print(f"""
     Welcome to Nep's RPG Game. 
@@ -214,7 +317,7 @@ def main():
     A Medic has {medic.health} health and {medic.power} power.
     \t Medics can sometimes regenerate 2 health when they're attacked.\n
     A Shadow has {shadow.health} health and {shadow.power} power.
-    \t Shadow's only take damage 10% of the time.\n
+    \t Shadows only take damage 10% of the time.\n
     A Knight has {knight.health} health and {knight.power} power.
     \t Knights are strong but sometimes they miss.\n
     A Comedian has {comedian.health} health and {comedian.power} power.
@@ -239,36 +342,69 @@ def main():
     random_monster = random.choice(enemy_list)
     print(f"A {random_monster.__class__.__name__} appears.")
 
-    while user_character.alive():
+    while random_monster.alive() and user_character.alive():
 
         user_character.print_status()
         random_monster.print_status()
 
         print()
         print("What do you want to do?")
-        print(f"1. fight {random_monster.__class__.__name__}")
-        print("2. do nothing")
-        print("3. flee")
+        print("1. buy an item from the store")
+        print(f"2. fight {random_monster.__class__.__name__}")
+        print("3. do nothing")
+        print("4. flee")
         print("> ",)
         user_input = input()
 
         if user_input == "1":
+            supertonic = Supertonic()
+            armor = Armor()
+            evade = Evade()
+            escape = Escape()
+            swap = Swap()
+
+            store_shelves = [supertonic, armor, evade, escape, swap]
+            print("Welcome to the Store")
+            print("The following are items in stock.")
+            for i in store_shelves:
+                print(i.__class__.__name__ +
+                      " which costs " + str(i.cost) + " coins.")
+            if user_character.coins == 0:
+                print("You have no money. Go out there and fight.")
+                user_input = "2"
+            else:
+                print("Code goes here to enable user to purchase items")
+                user_input = "2"
+
+        if user_input == "2":
 
             user_character.attack(random_monster)
 
             if random_monster.__class__.__name__ == "Zombie":
                 zombie.never_die(user_character)
-            else:
-                if random_monster.alive():
-                    pass
-                else:
-                    print("You defeated the enemy.")
-                    break
 
-        elif user_input == "2":
-            pass
+            if random_monster.alive():
+                pass
+
+            else:
+                user_character.coins += random_monster.bounty
+                print(
+                    f"You gained {random_monster.bounty} coins for defeating the enemy. You have {user_character.coins} coins now.")
+
+                # New enemy objects need to be generated because if you defeat a goblin/wizard, and another goblin/wizard appears, their health persists and does not reset.
+                goblin = Goblin(goblin_health, goblin_power, goblin_bounty)
+                zombie = Zombie(zombie_health, zombie_power, zombie_bounty)
+                wizard = Wizard(wizard_health, wizard_power, wizard_bounty)
+                enemy_list = [goblin, zombie, wizard]
+                random_monster = random.choice(enemy_list)
+                time.sleep(5)
+                print(
+                    f"But wait. A wild {random_monster.__class__.__name__} appears.")
 
         elif user_input == "3":
+            pass
+
+        elif user_input == "4":
             print("Goodbye.")
             break
 
@@ -279,10 +415,8 @@ def main():
         if random_monster.alive():
 
             # Shadow special ability
-            shadow_chance = random.random()
-
             if user_character.__class__.__name__ == "Shadow":
-
+                shadow_chance = random.random()
                 if shadow_chance <= 0.10:
                     random_monster.attack(user_character)
                     print(
@@ -302,6 +436,7 @@ def main():
 
             if not user_character.alive():
                 print("You are dead.")
+            user_input = "1"
 
 
 main()
