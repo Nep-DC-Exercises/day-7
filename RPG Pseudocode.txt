@@ -1,0 +1,33 @@
+Some notes on the structure of the game
+
+User chooses a character
+Random Monster is generated
+
+While the User's Character is alive and the random monster is alive:
+
+	Let the user choose whether to enter store, fight the monster, do nothing, or flee.
+				
+		Store
+			Display the items the user can purchase
+			User can purchase an item	
+		
+		Fight
+			User can use an item
+
+			User Attacks Monster
+				
+			If the Monster is alive
+			
+				The Monster attacks the User
+				
+				If the User is Not Alive
+				
+					Exit the Game
+	
+		Do Nothing
+			
+			Monster attacks the User
+
+		Flee
+		
+			Exit the Game

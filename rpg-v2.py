@@ -17,9 +17,7 @@ class Character(object):
         self.health = health
         self.power = power
         self.evade_points = 0
-        # ! I'm going to set self.coins to 20 in order to test the store purchase mechanism.
-        # Todo this is only temporary. Please set to 0 when testing complete.
-        self.coins = 23
+        self.coins = 0
         self.inventory = []
         self.armor_points = 0
 
@@ -54,7 +52,7 @@ class Character(object):
             # If there's no armor or evade points, it's just a normal attack
             else:
                 enemy.health -= self.power
-
+        # if the enemy doesn't have any evade points, which are all the monsters, treat it like a regular attack
         except AttributeError:
             enemy.health -= self.power
 
@@ -66,20 +64,24 @@ class Character(object):
     def print_status(self):
         i = 0
         user_characters = ['Hero', 'Medic', 'Shadow', 'Knight', 'Comedian']
+        # if the class is a user character
         if self.__class__.__name__ in user_characters:
+
             print(f"You have {self.health} health and {self.power} power.")
+
             for i in range(len(self.inventory)):
                 print(
                     f"You have: {self.inventory[i].__class__.__name__} in your inventory.")
 
             print(f"You have {self.coins} coins.")
+
         else:
             print(
                 f"The {self.__class__.__name__} has {self.health} health and {self.power} power.")
 
     def buy_item(self, item):
 
-        if self.coins > item.cost:
+        if self.coins >= item.cost:
             self.inventory.append(item)
             self.coins -= item.cost
             return True
@@ -108,6 +110,7 @@ class Hero(Character):
 class Medic(Character):
 
     def medic_power(self):
+        # Medics have a 20% chance of gaining health at the end of each turn
         medic_chance = random.random()
         if medic_chance <= 0.20:
             self.health += 2
@@ -122,6 +125,7 @@ class Knight(Character):
 
     def attack(self, enemy):
         knight_chance = random.random()
+        # Knights will miss their attack 60% of the time
         if knight_chance <= 0.60:
             print("Swing and a miss. Better luck next time.")
         else:
@@ -134,6 +138,7 @@ class Comedian(Character):
 
     def attack(self, enemy):
         laugh_chance = random.random()
+        # lol this is my favorite character
         jokes = [
             "I made a pencil with two erasers. It was pointless.",
             "How do you make a Kleenex dance? Put a little boogie in it!",
@@ -155,14 +160,15 @@ class Comedian(Character):
 
         print("Was it funny?")
 
-        # time.sleep(5)
+        time.sleep(5)
 
         if laugh_chance <= 0.50:
             print(
                 f"It worked! The {enemy.__class__.__name__} laughs really hard and loses {self.power} health!")
             enemy.health -= self.power
         else:
-            print(f"The {enemy.__class__.__name__} groans.")
+            print(
+                f"The {enemy.__class__.__name__} groans. The joke wasn't very funny unfortunately.")
 
 
 # Enemy Classes: Goblin, Wizard, Zombie
@@ -311,6 +317,7 @@ wizard_bounty = 6
 
 zombie_health = 6
 zombie_power = 3
+# Actually irrelevant for a zombie since they can't die
 zombie_bounty = 100
 
 
@@ -329,12 +336,11 @@ character_dict = {
 def main():
     # Enemy Objects
     goblin = Goblin(goblin_health, goblin_power, goblin_bounty)
-    # Removing Zombie for testing purposes
-    # zombie = Zombie(zombie_health, zombie_power, zombie_bounty)
+    zombie = Zombie(zombie_health, zombie_power, zombie_bounty)
     wizard = Wizard(wizard_health, wizard_power, wizard_bounty)
 
     # List of enemies
-    enemy_list = [goblin, wizard]
+    enemy_list = [goblin, zombie, wizard]
 
     print(f"""
     Welcome to Nep's RPG Game.
@@ -358,7 +364,7 @@ def main():
     while True:
         character_choice = int(
             input("Type 1 for Hero. 2 for Medic. 3 for Shadow. 4 for Knight. 5 for Comedian. >> "))
-
+        print("\n")
         try:
             user_character = character_dict[character_choice]
             print(f"You chose {user_character.__class__.__name__}.")
@@ -372,12 +378,12 @@ def main():
     random_monster = random.choice(enemy_list)
     print(f"A {random_monster.__class__.__name__} appears.")
 
-    # The main while loop
+    # The main fighting loop
     while random_monster.alive() and user_character.alive():
 
         user_character.print_status()
         random_monster.print_status()
-        # time.sleep(3)
+        time.sleep(3)
         print()
         print("What do you want to do?")
         print("1. buy an item from the store")
@@ -405,12 +411,12 @@ def main():
             }
             print("===========    Welcome to the Store   ===========")
             print("The following are items in stock.")
-            # time.sleep(2)
+            time.sleep(2)
             # Display the items available for purchase and how much they cost
             for i in store_shelves:
                 print(i + " which costs " +
                       str(store_shelves[i].cost) + " coins.")
-            # time.sleep(2)
+            time.sleep(2)
             # kick the user out of the store if they don't have cash money
             if user_character.coins == 0:
                 print("You have no money. Go out there and fight.")
@@ -475,8 +481,8 @@ def main():
             print("You attack the monster.")
             user_character.attack(random_monster)
 
-            # if random_monster.__class__.__name__ == "Zombie":
-            #     zombie.never_die(user_character)
+            if random_monster.__class__.__name__ == "Zombie":
+                zombie.never_die(user_character)
 
             if random_monster.alive():
                 pass
@@ -488,12 +494,11 @@ def main():
 
                 # New enemy objects need to be generated because if you defeat a goblin/wizard, and another goblin/wizard appears, their health persists and does not reset.
                 goblin = Goblin(goblin_health, goblin_power, goblin_bounty)
-                # zombie = Zombie(zombie_health, zombie_power, zombie_bounty)
-                # Don't forget to add zombie back to enemy list.
+                zombie = Zombie(zombie_health, zombie_power, zombie_bounty)
                 wizard = Wizard(wizard_health, wizard_power, wizard_bounty)
                 enemy_list = [goblin, wizard]
                 random_monster = random.choice(enemy_list)
-                # time.sleep(4)
+                time.sleep(4)
                 print("\n\n")
                 print(
                     f"But wait. A wild {random_monster.__class__.__name__} appears.")
@@ -521,7 +526,7 @@ def main():
 
                 else:
                     print(
-                        "It tried attacking you but missed and attacked your shadow.")
+                        "The enemy tried attacking you but missed and attacked your shadow.")
 
             else:
                 print(f"The {random_monster.__class__.__name__} attacks you.")
@@ -533,6 +538,7 @@ def main():
 
             if not user_character.alive():
                 print("You are dead.")
+
             user_input = "1"
 
 
